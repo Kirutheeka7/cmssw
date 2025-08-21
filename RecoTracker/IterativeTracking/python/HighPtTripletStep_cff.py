@@ -377,7 +377,7 @@ highPtTripletStepSelector = RecoTracker.FinalTrackSelectors.multiTrackSelector_c
     ] #end of vpset
 ) #end of clone
 
-fastSim.toModify(highPtTripletStepSelector,vertices = "firstStepPrimaryVerticesBeforeMixing")
+#fastSim.toModify(highPtTripletStepSelector,vertices = "firstStepPrimaryVerticesBeforeMixing")
 
 from Configuration.ProcessModifiers.vectorHits_cff import vectorHits
 vectorHits.toModify(highPtTripletStepSelector.trackSelectors[2], minNumberLayers = 3, minNumber3DLayers = 3, d0_par1 = ( 0.5, 4.0 ), dz_par1 = ( 0.6, 4.0 ))
@@ -445,5 +445,5 @@ fastSim.toReplaceWith(HighPtTripletStepTask,
                                ,highPtTripletStepSeeds
                                ,highPtTripletStepTrackCandidates
                                ,highPtTripletStepTracks
-                               ,highPtTripletStepSelector
+                               ,highPtTripletStep
                                ) )

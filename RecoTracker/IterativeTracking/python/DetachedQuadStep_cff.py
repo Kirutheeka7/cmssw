@@ -346,7 +346,7 @@ detachedQuadStepSelector = RecoTracker.FinalTrackSelectors.multiTrackSelector_cf
     ] #end of vpset
 ) #end of clone
 
-fastSim.toModify(detachedQuadStepSelector,vertices = "firstStepPrimaryVerticesBeforeMixing")
+#fastSim.toModify(detachedQuadStepSelector,vertices = "firstStepPrimaryVerticesBeforeMixing")
 
 from RecoTracker.FinalTrackSelectors.trackAlgoPriorityOrder_cfi import trackAlgoPriorityOrder
 import RecoTracker.FinalTrackSelectors.trackListMerger_cfi
@@ -391,6 +391,6 @@ fastSim.toReplaceWith(DetachedQuadStepTask,
                                ,detachedQuadStepSeeds
                                ,detachedQuadStepTrackCandidates
                                ,detachedQuadStepTracks
-                               ,detachedQuadStepSelector
+#                               ,detachedQuadStepSelector
                                ,detachedQuadStep
                                ) )
