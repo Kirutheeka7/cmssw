@@ -8,6 +8,11 @@
 #include "FWCore/Framework/interface/ProducesCollector.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "MagneticField/UniformEngine/interface/UniformMagneticField.h"
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "TH2.h"
+#include <TH1D.h>
+#include <TH2D.h>
 
 // tracking
 #include "TrackingTools/DetLayers/interface/DetLayer.h"
@@ -102,6 +107,7 @@ namespace fastsim {
     std::unique_ptr<edm::PSimHitContainer> simHitContainer_;  //!< The SimHit.
     double minMomentum_;                                      //!< Set the minimal momentum of incoming particle
     bool doHitsFromInboundParticles_;  //!< If not set, incoming particles (negative speed relative to center of detector) don't create a SimHits since reconstruction anyways not possible
+    TH2D *tracker_rz_sim;
   };
 }  // namespace fastsim
 
@@ -113,6 +119,8 @@ fastsim::TrackerSimHitProducer::TrackerSimHitProducer(const std::string& name, c
   // - particle with positive (negative) z and negative (positive) speed in z direction: no SimHits
   // -> this is not neccesary since a track reconstruction is not possible in this case anyways
   doHitsFromInboundParticles_ = cfg.getParameter<bool>("doHitsFromInboundParticles");
+  edm::Service<TFileService> fs;
+  tracker_rz_sim= fs->make<TH2D>("simhits_rz","rz view of Phase 2 tracker using SimHits",1000,300,300,300,-150,150);
 }
 
 void fastsim::TrackerSimHitProducer::registerProducts(edm::ProducesCollector producesCollector) const {
@@ -317,7 +325,7 @@ std::pair<double, std::unique_ptr<PSimHit>> fastsim::TrackerSimHitProducer::crea
 
   // Position of the hit in global coordinates
   GlobalPoint hitPos(detector.surface().toGlobal(localPosition));
-
+  tracker_rz_sim->Fill(hitPos.z(),hitPos.perp());
   return std::pair<double, std::unique_ptr<PSimHit>>((hitPos - refPos).mag(),
                                                      std::make_unique<PSimHit>(entry,
                                                                                exit,

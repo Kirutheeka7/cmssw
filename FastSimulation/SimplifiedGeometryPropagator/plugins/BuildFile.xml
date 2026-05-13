@@ -15,4 +15,6 @@
 <use name="DataFormats/Math"/>
 <use name="hepmc"/>
 <use name="clhep"/>
+<use name="PhysicsTools/UtilAlgos"/>
+<use name="FWCore/ServiceRegistry"/>
 <flags EDM_PLUGIN="1"/>

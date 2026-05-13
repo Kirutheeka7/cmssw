@@ -27,6 +27,13 @@
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 
+//plots
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "TH2.h"
+#include <TH1D.h>
+#include <TH2D.h>
+
 class FastTrackerRecHitMatcher : public edm::stream::EDProducer<> {
 public:
   explicit FastTrackerRecHitMatcher(const edm::ParameterSet&);
@@ -71,6 +78,7 @@ private:
   // ----------member data ---------------------------
   edm::EDGetTokenT<edm::PSimHitContainer> simHitsToken;
   edm::EDGetTokenT<FastTrackerRecHitRefCollection> simHit2RecHitMapToken;
+  TH2D *trackerreco_rz;
   const edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> trackerGeometryESToken;
 };
 
@@ -79,7 +87,8 @@ FastTrackerRecHitMatcher::FastTrackerRecHitMatcher(const edm::ParameterSet& iCon
   simHitsToken = consumes<edm::PSimHitContainer>(iConfig.getParameter<edm::InputTag>("simHits"));
   simHit2RecHitMapToken =
       consumes<FastTrackerRecHitRefCollection>(iConfig.getParameter<edm::InputTag>("simHit2RecHitMap"));
-
+  edm::Service<TFileService> fs;
+  trackerreco_rz= fs->make<TH2D>("rechits_rz","rz view of Phase 2 tracker using RecHits",1000,-300,300,300,-150,150);
   produces<FastTrackerRecHitCollection>();
   produces<FastTrackerRecHitRefCollection>("simHit2RecHitMap");
 }
@@ -126,6 +135,12 @@ void FastTrackerRecHitMatcher::produce(edm::Event& iEvent, const edm::EventSetup
     DetId detid = recHit->geographicalId();
     unsigned int subdet = detid.subdetId();
 
+    //Arnab: add rvseta
+    for(unsigned recHitCounter = 0;recHitCounter < simHits->size();++recHitCounter){
+      trackerreco_rz->Fill(recHit->globalPosition().z(),recHit->globalPosition().perp());
+      //std::cout<<"eta="<<recHit->globalPosition().eta()<<std::endl;
+    }
+    
     // treat pixel hits
     if (subdet <= 2) {
       (*output_simHit2RecHitMap)[simHitCounter] = recHitRef;
