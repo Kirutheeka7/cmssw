@@ -88,12 +88,14 @@ FastTrackerRecHitMatcher::FastTrackerRecHitMatcher(const edm::ParameterSet& iCon
   simHit2RecHitMapToken =
       consumes<FastTrackerRecHitRefCollection>(iConfig.getParameter<edm::InputTag>("simHit2RecHitMap"));
   edm::Service<TFileService> fs;
-  trackerreco_rz= fs->make<TH2D>("rechits_rz","rz view of Phase 2 tracker using RecHits",1000,-300,300,300,-150,150);
+  trackerreco_rz= fs->make<TH2D>("rechits_rz","rz view of Phase 2 tracker using RecHits",600,-300,300,300,-150,150);
   produces<FastTrackerRecHitCollection>();
   produces<FastTrackerRecHitRefCollection>("simHit2RecHitMap");
 }
 
 void FastTrackerRecHitMatcher::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+
+  std::cout << "In the FastTrackerRecHitMatcher::produce function" << std::endl;
   // services
   auto const& geometry = iSetup.getData(trackerGeometryESToken);
 
@@ -143,6 +145,7 @@ void FastTrackerRecHitMatcher::produce(edm::Event& iEvent, const edm::EventSetup
     
     // treat pixel hits
     if (subdet <= 2) {
+      std::cout << "this is a pixel hit, directly mapped!" << std::endl;
       (*output_simHit2RecHitMap)[simHitCounter] = recHitRef;
     }
 
@@ -152,11 +155,15 @@ void FastTrackerRecHitMatcher::produce(edm::Event& iEvent, const edm::EventSetup
 
       // treat regular regular strip hits
       if (!stripSubDetId.glued()) {
+	std::cout << "this is a regular strip hit" << std::endl;
         (*output_simHit2RecHitMap)[simHitCounter] = recHitRef;
       }
 
+      else {(*output_simHit2RecHitMap)[simHitCounter] = recHitRef;}
+      
       // treat strip hits on glued layers
-      else {
+      /*else {
+	std::cout << "this is a glued strip hit" << std::endl;
         // Obtain direction of simtrack at simhit in local coordinates of glued module
         //   - direction of simtrack at simhit, in coordindates of the single module
         LocalVector localSimTrackDir = simHit.localDirection();
@@ -166,6 +173,14 @@ void FastTrackerRecHitMatcher::produce(edm::Event& iEvent, const edm::EventSetup
         const GluedGeomDet* gluedDet = (const GluedGeomDet*)geometry.idToDet(DetId(stripSubDetId.glued()));
         LocalVector gluedLocalSimTrackDir = gluedDet->surface().toLocal(globalSimTrackDir);
 
+	bool isPSmodule_s = geometry.getDetectorType(detid) == TrackerGeometry::ModuleType::Ph2PSP;
+	bool isPSmodule_p = geometry.getDetectorType(detid) == TrackerGeometry::ModuleType::Ph2PSS;
+	bool is2Smodule = geometry.getDetectorType(detid) == TrackerGeometry::ModuleType::Ph2SS;
+	
+	std::cout << "the subdetector is: " << gluedDet->subDetector() << std::endl;
+	std::cout << "Is it PS -p module" << isPSmodule_p << std::endl;
+	std::cout << "Is it PS -s module: " << isPSmodule_s << std::endl;
+	std::cout << "Is it 2S module: " << is2Smodule << std::endl;
         // check whether next hit is partner
         const FastSingleTrackerRecHit* partnerRecHit = nullptr;
         //      - there must be a next hit
@@ -199,7 +214,7 @@ void FastTrackerRecHitMatcher::produce(edm::Event& iEvent, const edm::EventSetup
         output_recHits->push_back(std::move(newRecHit));
         (*output_simHit2RecHitMap)[simHitCounter] =
             FastTrackerRecHitRef(output_recHits_refProd, output_recHits->size() - 1);
-      }
+	    }*/
     }
   }
 

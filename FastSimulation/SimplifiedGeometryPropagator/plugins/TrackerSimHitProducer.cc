@@ -120,7 +120,7 @@ fastsim::TrackerSimHitProducer::TrackerSimHitProducer(const std::string& name, c
   // -> this is not neccesary since a track reconstruction is not possible in this case anyways
   doHitsFromInboundParticles_ = cfg.getParameter<bool>("doHitsFromInboundParticles");
   edm::Service<TFileService> fs;
-  tracker_rz_sim= fs->make<TH2D>("simhits_rz","rz view of Phase 2 tracker using SimHits",1000,300,300,300,-150,150);
+  tracker_rz_sim= fs->make<TH2D>("simhits_rz","rz view of Phase 2 tracker using SimHits",600,-300,300,300,-150,150);
 }
 
 void fastsim::TrackerSimHitProducer::registerProducts(edm::ProducesCollector producesCollector) const {
@@ -162,6 +162,8 @@ void fastsim::TrackerSimHitProducer::interact(Particle& particle,
   // check that layer has tracker modules
   //
   if (!layer.getDetLayer()) {
+    //    std::cout << "In layer " << (layer.isForward() ? "ForwardSimplifiedGeometry" : "BarrelSimplifiedGeometry") << " index=" << layer.index()
+    //	      << (layer.isForward() ? " z=" : " radius=") << layer.getGeomProperty() << std::endl;
     return;
   }
 
@@ -199,6 +201,11 @@ void fastsim::TrackerSimHitProducer::interact(Particle& particle,
   InsideBoundsMeasurementEstimator est;
   std::vector<DetWithState> compatibleDetectors = layer.getDetLayer()->compatibleDets(trajectory, propagator, est);
 
+  //if (compatibleDetectors.empty()) {
+    //std::cout << "WARNING: Layer type " << layer.getDetLayer()->subDetector() 
+    //          << " has 0 compatible detectors for particle " << particle.pdgId() 
+    //          << " at R=" << position.perp() << ", Z=" << position.z() << std::endl;
+  //}
   ////////
   // You have to sort the simHits in the order they occur!
   ////////
@@ -238,7 +245,8 @@ void fastsim::TrackerSimHitProducer::interact(Particle& particle,
     } else {
       // if the detector has components
       for (const auto component : detector.components()) {
-        std::pair<double, std::unique_ptr<PSimHit>> hitPair =
+	std::cout << "detector id:" << detector.geographicalId() << std::endl;
+	std::pair<double, std::unique_ptr<PSimHit>> hitPair =
             createHitOnDetector(particleState,
                                 pdgId,
                                 layer.getThickness(particle.position()),
@@ -311,6 +319,7 @@ std::pair<double, std::unique_ptr<PSimHit>> fastsim::TrackerSimHitProducer::crea
   double boundY = detectorPlane.bounds().length() / 2.;
   // Special treatment for TID and TEC trapeziodal modules
   unsigned subdet = DetId(detector.geographicalId()).subdetId();
+  //std::cout << "subdetid: " << subdet << " det r: " << detectorPlane.position().perp() << " det z: " << detectorPlane.position().z() << std::endl;
   if (subdet == 4 || subdet == 6)
     boundX *= 1. - localPosition.y() / detectorPlane.position().perp();
   if (fabs(localPosition.x()) > boundX || fabs(localPosition.y()) > boundY) {
